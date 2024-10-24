@@ -226,7 +226,7 @@ async fn ev_make_rsp(data: web::Form<ResponseMakeParameters>, req: HttpRequest) 
     let id = generate_id(remote_addr);
 
     match to_thr_object(thrid.clone()) {
-        Ok(mut thr) => {
+        Ok(thr) => {
             if !thr.banned.contains(&id) {
                 match fs::File::create(format!("./BBS/{}.json", thrid)) {
                     Ok(mut file) => {
@@ -244,14 +244,13 @@ async fn ev_make_rsp(data: web::Form<ResponseMakeParameters>, req: HttpRequest) 
                         
                         let date = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
                         
-                        
+                        let (mut thr, text) = parser::parse_commands(text, thr);
 
                         thr.content.push(Response {name: name.clone(), text: text.clone(), date: date, id: id});
                         
                         let thr_len: i32 = thr.content.len().to_string().parse().unwrap();
                         thr.len = thr_len;
                         
-                        thr = parser::parse_commands(text, thr);
 
                         let buffer = to_string(&thr).unwrap();
                         let _ = file.write_all(buffer.as_bytes());
