@@ -18,22 +18,22 @@
     <a href="/">■戻る</a>
     <hr>
     <div>
-        お名前: <input type="text" id="name" name="name" required><br><br>
+        お名前: <input type="text" id="name" name="name"><br><br>
         <textarea style="width: 100%; height:150px" id="text" name="text" placeholder="本文"></textarea>
         <button id="submit" style="width: 100%; height:50px;">投稿</button>
     </div>
 </body>
-<a href="/Post/Response" id="PostURL"></a>
+<form action="/Post/Response" id="PostURL"></form>
 <a href="/poll/{{ thrid }}" id="GetURL"></a>
-<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script src="/static/jquery-3.7.1.js"></script>
 <script>
     $("#submit").click(()=>{
         name = $("#name").val();
         text = $("#text").val();
         $.ajax({
-            url: $("#PostURL")[0].href,
+            url: $("#PostURL")[0].action,
             type: "POST",
-            dataType: 'text',  // 期待するデータ形式を指定
+            dataType: 'text', 
             data: {
                 thrid: "{{ thrid }}",
                 text: text,
@@ -42,6 +42,9 @@
             success: (c) => {
                 if (c == "SUC") {
                     console.log("成功");
+                    $("#text").val("");
+                } else if (c == "ERR3") {
+                    alert("BANされています: 他のスレッドで遊びましょう。");
                 } else {
                     alert("サーバー側でエラーが発生しています。");
                 }

@@ -23,17 +23,23 @@ use chrono::prelude::Local;
 use sha2::{Sha256, Digest}; // ユーザーのID
 use rand::Rng; // スレッドのID
 
+//モジュール
+mod parser;
 
-//MOD
+//構造体
+mod struct_defines;
+use crate::struct_defines::{Response, Thread}; // 使いたい構造体をインポート
+
 
 //ID生成の際に使う奴
 const IDGEN_CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+=/_";
 const IDGEN_LENGTH: usize = 8; // 生成するIDの長さ
 
 // IPアドレスを素にIDを生成する
-fn generate_id(ipaddr: String) -> String {
+fn generate_id(ipaddr_: String) -> String {
+    let ipaddr: Vec<&str> = ipaddr_.as_str().rsplitn(2, ":").collect();
     let mut hasher = Sha256::new();
-    hasher.update(ipaddr);
+    hasher.update(ipaddr.get(1).unwrap());
     let result = hasher.finalize();
     let id: String = result.iter().map(|&byte| {
         let index = (byte as usize) % IDGEN_CHARSET.len();
@@ -114,23 +120,6 @@ struct ResponseMakeParameters {
     thrid: String
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-struct Thread {
-    id: String,
-    len: i32,
-    title: String,
-    banned: Vec<String>,
-    content: Vec<Response>,
-    admin: String
-}
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-struct Response {
-    name: String,
-    text: String,
-    date: String,
-    id: String,
-}
 
 // インデックスページ
 async fn page_index() -> impl Responder {
@@ -233,35 +222,44 @@ async fn ev_poll(path: web::Path<(String,)>) -> impl Responder {
 
 async fn ev_make_rsp(data: web::Form<ResponseMakeParameters>, req: HttpRequest) -> impl Responder {
     let thrid = &data.0.thrid;
+    let remote_addr = req.peer_addr().map(|addr| addr.to_string()).unwrap_or("Unknown".to_string());
+    let id = generate_id(remote_addr);
+
     match to_thr_object(thrid.clone()) {
         Ok(mut thr) => {
-            match fs::File::create(format!("./BBS/{}.json", thrid)) {
-                Ok(mut file) => {
-                    let text_ = &data.0.text;
-                    let mut name = &data.0.name;
-                    let nanasi = "名無しさん".to_string();
+            if !thr.banned.contains(&id) {
+                match fs::File::create(format!("./BBS/{}.json", thrid)) {
+                    Ok(mut file) => {
+                        let text_ = &data.0.text;
+                        let mut name = &data.0.name;
+                        let nanasi = "名無しさん".to_string();
+                        
+                        if name == "" {
+                            name = &nanasi;
+                        }
 
-                    if name == "" {
-                        name = &nanasi;
+                        let text = text_.clone().replace(">", "&gt;").replace("<", "&lt;");
+            
+
+                        
+                        let date = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+                        
+                        
+
+                        thr.content.push(Response {name: name.clone(), text: text.clone(), date: date, id: id});
+                        thr.len = thr.content.len();                        
+                        thr = parser::parse_commands(text, thr);
+
+                        let buffer = to_string(&thr).unwrap();
+                        let _ = file.write_all(buffer.as_bytes());
+                        HttpResponse::Ok().body("SUC")
+                    }, Err(_) => {
+                        HttpResponse::Ok().body("ERR2")
                     }
-
-                    let text = text_.clone().replace(">", "&gt;").replace("<", "&lt;");
-        
-                    let date = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-                    let remote_addr = req.peer_addr().map(|addr| addr.to_string()).unwrap_or("Unknown".to_string());
-                    let id = generate_id(remote_addr);
-                    
-                    
-
-                    thr.content.push(Response {name: name.clone(), text: text, date: date, id: id});
-                    let buffer = to_string(&thr).unwrap();
-                    let _ = file.write_all(buffer.as_bytes());
-                    HttpResponse::Ok().body("SUC")
-                }, Err(_) => {
-                    HttpResponse::Ok().body("ERR2")
                 }
+            } else {
+                HttpResponse::Ok().body("ERR3")
             }
-
 
         }, Err(_) => {
             HttpResponse::Ok().body("ERR1")
