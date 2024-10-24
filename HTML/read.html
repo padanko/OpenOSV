@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - OpenOSV</title>
+</head>
+<body style="background-color: #efefef;">
+    <h1 style="color:red">{{ title }}</h1>
+    <a href="/">■戻る</a>
+    <hr>
+    <div id="thr">
+    {%- for response in com -%}
+    <dl id='r{{ loop.index }}'><dt>{{ loop.index }}: <b style="color: green">{{ response.name }}</b>, {{ response.date }}, ID: {{ response.id }}</dt><dd>{{ response.text | safe }}</dd></dl>
+    {%- endfor -%}
+    </div>
+    <hr>
+    <a href="/">■戻る</a>
+    <hr>
+    <div>
+        お名前: <input type="text" id="name" name="name" required><br><br>
+        <textarea style="width: 100%; height:150px" id="text" name="text" placeholder="本文"></textarea>
+        <button id="submit" style="width: 100%; height:50px;">投稿</button>
+    </div>
+</body>
+<a href="/Post/Response" id="PostURL"></a>
+<a href="/poll/{{ thrid }}" id="GetURL"></a>
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script>
+    $("#submit").click(()=>{
+        name = $("#name").val();
+        text = $("#text").val();
+        $.ajax({
+            url: $("#PostURL")[0].href,
+            type: "POST",
+            dataType: 'text',  // 期待するデータ形式を指定
+            data: {
+                thrid: "{{ thrid }}",
+                text: text,
+                name: name
+            },
+            success: (c) => {
+                if (c == "SUC") {
+                    console.log("成功");
+                } else {
+                    alert("サーバー側でエラーが発生しています。");
+                }
+            }
+        })
+    })
+
+    function poll() {
+        fetch($("#GetURL")[0].href)
+        .then(d=>d.json())
+        .then((d)=>{
+            console.log(d)
+            dl = document.createElement("dl")
+            dl.innerHTML = `<dt>${ document.getElementById("thr").querySelectorAll("dl").length+1 }: <b style="color: green">${ d.name }</b>, ${ d.date }, ID: ${ d.id }</dt><dd>${ d.text }</dd>`
+            document.getElementById("thr").appendChild(dl);
+            poll()
+        }).catch((d)=>{
+            poll()
+        })
+    }
+
+    poll()
+</script>
+</html>
