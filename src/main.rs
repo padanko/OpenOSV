@@ -247,7 +247,10 @@ async fn ev_make_rsp(data: web::Form<ResponseMakeParameters>, req: HttpRequest) 
                         
 
                         thr.content.push(Response {name: name.clone(), text: text.clone(), date: date, id: id});
-                        thr.len = thr.content.len();                        
+                        
+                        let thr_len: i32 = thr.content.len().to_string().parse().unwrap();
+                        thr.len = thr_len;
+                        
                         thr = parser::parse_commands(text, thr);
 
                         let buffer = to_string(&thr).unwrap();
