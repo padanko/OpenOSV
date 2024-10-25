@@ -12,8 +12,10 @@ use tera;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_str, to_string};
 
+// ???
 use std::collections::HashMap;
-use std::hash::Hash;
+
+
 // ファイル関係
 use std::io::Read;
 use std::{fs, io::Write};
