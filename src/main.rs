@@ -1,6 +1,10 @@
 // Copyright (c) 2024 Honzawa yusei
 // This software is licensed under the MIT License. See the LICENSE file for details.
 
+// This project includes code that is licensed under the Apache License 2.0.
+// For more information, see the LICENSE or NOTICE file in the root of the repository.
+
+
 // Rustの勉強に作った
 
 // ウェブサーバー関係
