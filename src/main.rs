@@ -4,9 +4,6 @@
 // This project includes code that is licensed under the Apache License 2.0.
 // For more information, see the LICENSE or NOTICE file in the root of the repository.
 
-
-// Rustの勉強に作った
-
 // ウェブサーバー関係
 use actix_files as fs_actix;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder};
@@ -35,8 +32,8 @@ use sha2::{Digest, Sha256}; // ユーザーのID // スレッドのID
 mod parser;
 
 //構造体
-mod struct_defines;
-use crate::struct_defines::{Response, Thread}; // 使いたい構造体をインポート
+mod defines;
+use crate::defines::{Response, Thread}; // 使いたい構造体をインポート
 
 //レスのレンダリング
 mod render;
@@ -137,16 +134,20 @@ struct ResponseMakeParameters {
 async fn page_index() -> impl Responder {
     let tera =
         tera::Tera::new("HTML/**/*").expect("Tera テンプレートエンジンの初期化に失敗しました.");
+
     let mut ctx = tera::Context::new();
+
     ctx.insert("thread_list", &thread_glob());
+
     let html = tera.render("index.html", &ctx).unwrap();
+
     HttpResponse::Ok().content_type("text/html").body(html)
 }
 
 //
 async fn ev_make_thr(data: web::Form<ThreadMakeParameters>, req: HttpRequest) -> impl Responder {
-    // ID生成に必要な情報
     let thr_id = generate_thread_id();
+
     match fs::File::create(format!("./BBS/{}.json", thr_id.clone())) {
         Ok(mut file) => {
             let remote_addr = req
@@ -188,10 +189,12 @@ async fn ev_make_thr(data: web::Form<ThreadMakeParameters>, req: HttpRequest) ->
 
             let buffer = to_string(&thread_object).unwrap();
             let _ = file.write_all(&buffer.as_bytes());
+
             HttpResponse::Ok().content_type("text/html").body(format!("<a href='/thread/{}' id='url'></a><script>location.href = document.getElementById('url').href</script>", thr_id.clone()))
-        }
+
+        },
         Err(_) => HttpResponse::Ok()
-            .body("Error: The action could not be completed due to a glitch on the server side"),
+            .body("Error: The action could not be completed due to a problem on the server side"),
     }
 }
 
@@ -259,7 +262,7 @@ async fn ev_poll(path: web::Path<(String,)>) -> impl Responder {
             }
 
             old_thread = new_thread;
-            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await; // 短時間で読み込みすぎないように待つ
         },
         Err(_) => HttpResponse::Ok().body("Error: Thread does not exist"),
     }
@@ -299,17 +302,16 @@ async fn ev_make_rsp(data: web::Form<ResponseMakeParameters>, req: HttpRequest) 
                             id: id,
                         });
 
-                        let thr_len: i32 = thr.content.len().to_string().parse().unwrap();
-                        thr.len = thr_len;
+                        thr.len = thr.len + 1;
 
                         let buffer = to_string(&thr).unwrap();
                         let _ = file.write_all(buffer.as_bytes());
                         HttpResponse::Ok().body("SUC")
                     }
-                    Err(_) => HttpResponse::Ok().body("ERR2"),
+                    Err(_) => HttpResponse::Ok().body("ERR2") // 書き込みの際何らかの問題が発生した場合に返される
                 }
             } else {
-                HttpResponse::Ok().body("ERR3")
+                HttpResponse::Ok().body("ERR3") // エラーコード。 banされている場合に返される
             }
         }
         Err(_) => HttpResponse::Ok().body("ERR1"),
