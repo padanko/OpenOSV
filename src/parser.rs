@@ -43,7 +43,7 @@ fn ban_parse(mut text: String, mut thread: Thread) -> (Thread, String) {
 // すべての「!random」をランダムな数字に置き換える
 fn random_parse(mut text: String) -> String { 
     for _ in 0..text.as_str().matches("!random").count() {
-        let replaced_str = format!("<b style='color-4'>{}</b>", randint(0, 100).to_string());
+        let replaced_str = randint(0, 100).to_string();
         text = text.replacen("!random", replaced_str.as_str(), 1)
     }
     text
@@ -77,7 +77,7 @@ fn getvar_parse(mut text: String, thread: Thread) -> String {
         match c
         {
             Some(value) => {
-                text = format!("{}\n<b class='color-2'>変数セット {} = {}</b>", &text, key.clone(), value.to_string());
+                text = format!("{}\n<b class='color-2'>変数 {} は {} です</b>", &text, key.clone(), value.to_string());
             },
             None => {
                 
