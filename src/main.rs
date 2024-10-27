@@ -150,10 +150,9 @@ async fn ev_make_thr(data: web::Form<ThreadMakeParameters>, req: HttpRequest) ->
 
     match fs::File::create(format!("./BBS/{}.json", thr_id.clone())) {
         Ok(mut file) => {
-            let remote_addr = req
-                .peer_addr()
-                .map(|addr| addr.to_string())
-                .unwrap_or("Unknown".to_string());
+            let ip_addr = req.headers().get("X-Forwarded-For")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or("Unknown");
 
             let title = &data.title;
             let mut name = &data.name;
@@ -161,7 +160,7 @@ async fn ev_make_thr(data: web::Form<ThreadMakeParameters>, req: HttpRequest) ->
 
             let text_ = &data.text;
             let date = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-            let id = generate_id(remote_addr);
+            let id = generate_id(ip_addr.to_string());
 
             if name == "" {
                 name = &nanasi;
@@ -270,11 +269,11 @@ async fn ev_poll(path: web::Path<(String,)>) -> impl Responder {
 
 async fn ev_make_rsp(data: web::Form<ResponseMakeParameters>, req: HttpRequest) -> impl Responder {
     let thrid = &data.0.thrid;
-    let remote_addr = req
-        .peer_addr()
-        .map(|addr| addr.to_string())
-        .unwrap_or("Unknown".to_string());
-    let id = generate_id(remote_addr);
+    let ip_addr = req.headers().get("X-Forwarded-For")
+    .and_then(|v| v.to_str().ok())
+    .unwrap_or("Unknown");
+
+    let id = generate_id(ip_addr.to_string());
 
     match to_thr_object(thrid.clone()) {
         Ok(thr) => {
