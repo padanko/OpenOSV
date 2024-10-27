@@ -1,0 +1,58 @@
+.color-1 {
+    color: red;
+}
+
+.color-2 {
+    color: blue;
+}
+
+.color-3 {
+    color: green;
+}
+
+.color-4 {
+    color: orange;
+}
+
+.button-upanddown {
+    color: white;
+    background-color: rgba(0, 0, 0, 0.6);
+    font-size: xx-large;
+    margin: 15px;
+    padding: 5px;
+    border-radius: 20px;
+    text-decoration: none;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(51, 51, 51, 0.9);
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-around;
+}
+
+/* 各ナビゲーションリンクのスタイル */
+.bottom-nav a {
+    color: white;
+    text-decoration: none;
+    padding: 10px;
+}
+
+.bottom-nav a:hover {
+    background-color: #555;
+}

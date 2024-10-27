@@ -1,54 +1,57 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }} - OpenOSV</title>
-    <style>
-        .color-1 {
-            color:red;
-        }
-        .color-2 {
-            color:blue;
-        }
-        .color-3 {
-            color:green;
-        }
-        .color-4 {
-            color: orange;
-        }
-        
-    </style>
+    <link rel="stylesheet" href="/static/style.css">
+    
 </head>
+
 <body style="background-color: #efefef;">
-    <h1 style="color:red">{{ title }}</h1>
-    <a href="/">■戻る</a>
-    <hr>
-    <div id="thr">
-    {%- for response in com -%}
-    <dl id='r{{ loop.index }}'><dt>{{ loop.index }}: <b style="color: green">{{ response.name }}</b>, {{ response.date }}, ID: {{ response.id }}</dt><dd>{{ response.text | safe }}</dd></dl>
-    {%- endfor -%}
+    <div style="margin:20px;">
+        <div style="position:fixed; top:35vh; right:1vw; display: flex; flex-direction: column;">
+            <a href="#title__" class="button-upanddown">▲</a>
+            <a href="#form__" class="button-upanddown">▼</a>
+        </div>
+        <h1 style="color:red" id="title__">{{ title }}</h1>
+        <a href="/">■戻る</a>
+        <hr>
+        <div id="thr">
+            {% for response in com %}
+            <dl id='r{{ loop.index }}'>
+                <dt>{{ loop.index }}: <b style="color: green">{{ response.name }}</b>, {{ response.date }}, ID: {{ response.id }}{% if response.id == admin_id %}<small style="color:red">主</small>{% endif %}</dt>
+                <dd>{{ response.text | safe }}</dd>
+            </dl>
+            {% endfor %}
+        </div>
+        <hr>
+        <a href="/">■戻る</a>
+        <hr>
+        <div id="form__">
+            お名前: <input type="text" id="name" name="name"><br><br>
+            <textarea style="width: 100%; height:150px" id="text" name="text" placeholder="本文"></textarea>
+            <button id="submit" style="width: 100%; height:50px;">投稿</button>
+        </div>
     </div>
-    <hr>
-    <a href="/">■戻る</a>
-    <hr>
-    <div>
-        お名前: <input type="text" id="name" name="name"><br><br>
-        <textarea style="width: 100%; height:150px" id="text" name="text" placeholder="本文"></textarea>
-        <button id="submit" style="width: 100%; height:50px;">投稿</button>
+    <div class="bottom-nav">
+        <a href="/">🏡ホーム</a>
+        <a href="/#dataform">🔨スレッドを作成</a>
+        <a href="/history">📗履歴</a>
     </div>
 </body>
 <form action="/Post/Response" id="PostURL"></form>
 <a href="/poll/{{ thrid }}" id="GetURL"></a>
-<script src="/static/jquery-3.7.1.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
-    $("#submit").click(()=>{
+    $("#submit").click(() => {
         name = $("#name").val();
         text = $("#text").val();
         $.ajax({
             url: $("#PostURL")[0].action,
             type: "POST",
-            dataType: 'text', 
+            dataType: 'text',
             data: {
                 thrid: "{{ thrid }}",
                 text: text,
@@ -69,18 +72,21 @@
 
     function poll() {
         fetch($("#GetURL")[0].href)
-        .then(d=>d.json())
-        .then((d)=>{
-            console.log(d)
-            dl = document.createElement("dl")
-            dl.innerHTML = `<dt id="r${ document.getElementById("thr").querySelectorAll("dl").length+1 }">${ document.getElementById("thr").querySelectorAll("dl").length+1 }: <b style="color: green">${ d.name }</b>, ${ d.date }, ID: ${ d.id }</dt><dd>${ d.text }</dd>`
-            document.getElementById("thr").appendChild(dl);
-            poll()
-        }).catch((d)=>{
-            poll()
-        })
+            .then(d => d.json())
+            .then((d) => {
+                console.log(d)
+                dl = document.createElement("dl")
+                dl.innerHTML = `<dt id="r${document.getElementById("thr").querySelectorAll("dl").length + 1}">${document.getElementById("thr").querySelectorAll("dl").length + 1}: <b style="color: green">${d.name}</b>, ${d.date}, ID: ${d.id}</dt><dd>${d.text}</dd>`
+                document.getElementById("thr").appendChild(dl);
+                poll()
+            }).catch((d) => {
+                poll()
+            })
     }
+
+
 
     poll()
 </script>
+
 </html>

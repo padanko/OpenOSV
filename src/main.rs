@@ -1,6 +1,3 @@
-// Copyright (c) 2024 Honzawa yusei
-// This software is licensed under the MIT License. See the LICENSE file for details.
-
 // This project includes code that is licensed under the Apache License 2.0.
 // For more information, see the LICENSE or NOTICE file in the root of the repository.
 
@@ -13,7 +10,7 @@ use tera;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_str, to_string};
 
-// ???
+// スレ内変数
 use std::collections::HashMap;
 
 
@@ -178,13 +175,13 @@ async fn ev_make_thr(data: web::Form<ThreadMakeParameters>, req: HttpRequest) ->
                 title: title.clone(),
                 banned: vec![],
                 content: vec![inital_response],
-                admin: id,
+                admin: id.clone(),
                 id: thr_id.clone(),
                 len: 1,
                 var: HashMap::new(),
             };
 
-            let (thread_object, _) = parser::parse_commands(text, thread_object);
+            let (thread_object, _) = parser::parse_commands(text, thread_object, id);
 
             let buffer = to_string(&thread_object).unwrap();
             let _ = file.write_all(&buffer.as_bytes());
@@ -219,6 +216,7 @@ async fn page_thread(path: web::Path<(String,)>) -> impl Responder {
             ctx.insert("thrid", &thrid);
             ctx.insert("title", &thr.title);
             ctx.insert("com", &contents);
+            ctx.insert("admin_id", &thr.admin);
             let html = tera.render("read.html", &ctx).unwrap();
             HttpResponse::Ok().content_type("text/html").body(html)
         }
@@ -292,7 +290,7 @@ async fn ev_make_rsp(data: web::Form<ResponseMakeParameters>, req: HttpRequest) 
 
                         let date = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
 
-                        let (mut thr, text) = parser::parse_commands(text, thr);
+                        let (mut thr, text) = parser::parse_commands(text, thr, id.clone());
 
                         thr.content.push(Response {
                             name: name.clone(),
@@ -318,6 +316,18 @@ async fn ev_make_rsp(data: web::Form<ResponseMakeParameters>, req: HttpRequest) 
 }
 
 
+async fn page_history() -> impl Responder {
+    let tera =
+        tera::Tera::new("HTML/**/*").expect("Tera テンプレートエンジンの初期化に失敗しました.");
+
+    let ctx = tera::Context::new();
+
+    let html = tera.render("history.html", &ctx).unwrap();
+
+    HttpResponse::Ok().content_type("text/html").body(html)
+}
+
+
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
@@ -326,6 +336,7 @@ async fn main() -> std::io::Result<()> {
             .route("/Post/Thread", web::post().to(ev_make_thr))
             .route("/Post/Response", web::post().to(ev_make_rsp))
             .route("/thread/{thrID}", web::get().to(page_thread))
+            .route("/history", web::get().to(page_history))
             .route("/poll/{thrID}", web::get().to(ev_poll))
             .service(fs_actix::Files::new("/static", "./static").show_files_listing())
     })

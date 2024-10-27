@@ -2,17 +2,19 @@ use regex::Regex;
 use rand::{self, Rng};
 use crate::defines::Thread;
 
+// 数字だけ？
 fn is_decimal(s: &str) -> bool {
     s.chars().all(char::is_numeric)
 }
 
+// ランダム機能で使う
 fn randint(a: i32, b:i32) -> i32 {
     let mut rng = rand::thread_rng();
     rng.gen_range(a..b)
 } 
 
-// BAN機能「aku」のコマンドを解析する
-fn ban_parse(mut text: String, mut thread: Thread) -> (Thread, String) {
+// BAN機能「aku」のコマンド
+fn ban_parse(mut text: String, mut thread: Thread, id: String) -> (Thread, String) {
     let ban_command_pattern: Regex = Regex::new(r"!aku:([0-9]+)").unwrap();  // Open2chと同じ !aku コマンド
     match ban_command_pattern.captures(text.clone().as_str()) {
         Some(val) => {
@@ -140,7 +142,7 @@ fn getvar_pipe_parse(text: String, thread: Thread) -> String {
 
 
 
-pub fn parse_commands(mut text: String, thread: Thread) -> (Thread, String){
+pub fn parse_commands(mut text: String, thread: Thread, id: String) -> (Thread, String){
 
     text = random_parse(text);
     text = random_pipe_parse(text);
@@ -150,8 +152,8 @@ pub fn parse_commands(mut text: String, thread: Thread) -> (Thread, String){
 
     let (thread, text ) = pam_var_parse(text, thread.clone());
     let (thread, text) = setvar_parse(text, thread.clone());
-    
-    let (thread, text) = ban_parse(text, thread.clone());
+
+    let (thread, text) = ban_parse(text, thread.clone(), id);
 
     
 
