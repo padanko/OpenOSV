@@ -73,7 +73,7 @@
         .then((d)=>{
             console.log(d)
             dl = document.createElement("dl")
-            dl.innerHTML = `<dt>${ document.getElementById("thr").querySelectorAll("dl").length+1 }: <b style="color: green">${ d.name }</b>, ${ d.date }, ID: ${ d.id }</dt><dd>${ d.text }</dd>`
+            dl.innerHTML = `<dt id="r${ document.getElementById("thr").querySelectorAll("dl").length+1 }">${ document.getElementById("thr").querySelectorAll("dl").length+1 }: <b style="color: green">${ d.name }</b>, ${ d.date }, ID: ${ d.id }</dt><dd>${ d.text }</dd>`
             document.getElementById("thr").appendChild(dl);
             poll()
         }).catch((d)=>{
