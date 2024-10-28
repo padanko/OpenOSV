@@ -39,8 +39,6 @@ fn ban_parse(mut text: String, mut thread: Thread, id: String) -> (Thread, Strin
             }, None => {
             }
         }
-    } else {
-        text = format!("{}\n<b class='color-2'>■アク禁(BAN)  失敗: 権限を保有していません</b>", &text);
     }
     let results: (Thread, String) = (thread, text);
     return results;

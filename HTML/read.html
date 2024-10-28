@@ -43,9 +43,11 @@
 </body>
 <form action="/Post/Response" id="PostURL"></form>
 <a href="/poll/{{ thrid }}" id="GetURL"></a>
+<audio src="/static/notify.wav" id="notify_audio"></audio>
 <script src="/static/jquery.min.js"></script>
 <script src="/static/jquery.cookie.min.js"></script>
 <script>
+    var notify_audio = document.getElementById("notify_audio");
     $("#submit").click(() => {
         
         name = $("#name").val();
@@ -114,8 +116,11 @@
             .then(d => d.json())
             .then((d) => {
                 console.log(d)
+                notify_audio.pause();
+                notify_audio.currentTime=0;
+                notify_audio.play();
                 dl = document.createElement("dl")
-                dl.innerHTML = `<dt id="r${document.getElementById("thr").querySelectorAll("dl").length + 1}">${document.getElementById("thr").querySelectorAll("dl").length + 1}: <b style="color: green">${d.name}</b>, ${d.date}, ID: ${d.id}</dt><dd>${d.text}</dd>`
+                dl.innerHTML = `<dt id="r${document.getElementById("thr").querySelectorAll("dl").length + 1}"><a class="reply-button" onclick="reply('${document.getElementById("thr").querySelectorAll("dl").length + 1}')">${document.getElementById("thr").querySelectorAll("dl").length + 1}</a>: <b style="color: green">${d.name}</b>, ${d.date}, ID: ${d.id}</dt><dd>${d.text}</dd>`
                 document.getElementById("thr").appendChild(dl);
                 poll()
             }).catch((d) => {
