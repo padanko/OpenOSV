@@ -66,6 +66,11 @@ html {
     background-color: #555;
 }
 
+.wrap-thr {
+    word-wrap: break-word; /* 旧仕様 */
+    overflow-wrap: break-word; /* 新仕様 */
+}
+
 @media (min-width: 768px) { 
     body {
         background-color: #efefef;

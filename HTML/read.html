@@ -6,20 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }} - OpenOSV</title>
     <link rel="stylesheet" href="/static/style.css">
-    
 </head>
 
 <body>
     <div id="status-bar">正常</div>
     <div style="margin:20px;">
-        <div style="position:fixed; top:35vh; right:1vw; display: flex; flex-direction: column;">
+        <div style="position:fixed; top:50vh; bottom: 50vh; right:1vw; display: flex; flex-direction: column;">
             <a href="#title__" class="button-upanddown">▲</a>
             <a href="#form__" class="button-upanddown">▼</a>
         </div>
         <div id="thr">
             <h1 style="color:red" id="title__">{{ title }}</h1>
             {% for response in com %}
-            <dl id='r{{ loop.index }}'>
+            <dl class="wrap-thr" id='r{{ loop.index }}'>
                 <dt><a class="reply-button" onclick="reply('{{ loop.index }}')">{{ loop.index }}</a>: <b style="color: green">{{ response.name }}</b>, {{ response.date }}, ID: {{ response.id }}{% if response.id == admin_id %}<small style="color:red">主</small>{% endif %}</dt>
                 <dd>{{ response.text | safe }}</dd>
             </dl>
@@ -47,6 +46,21 @@
 <script src="/static/jquery.min.js"></script>
 <script src="/static/jquery.cookie.min.js"></script>
 <script>
+
+    function close_statusbar() {
+        i = setInterval(()=>{
+            $("#status-bar").fadeOut();
+            clearInterval(i);
+        }, 800);
+    }
+
+
+    function open_statusbar() {
+        $("#status-bar").slideDown(150);
+    }
+
+    $("#status-bar").hide();
+
     var notify_audio = document.getElementById("notify_audio");
     $("#submit").click(() => {
         
@@ -73,23 +87,33 @@
 
                 if (c == "SUC") {
                     console.log("成功");
-
+                    open_statusbar()
                     $("#status-bar")[0].style.backgroundColor = "#55dd88"
                     $("#status-bar").text("成功")
                     $("#text").val("");
+                    close_statusbar()
                 } else if (c == "ERR3") {
+                    open_statusbar()
                     $("#status-bar")[0].style.backgroundColor = "#ff5500"
                     $("#status-bar").text("BANされています");
+                    close_statusbar()
+                    
                 } else if (c == "ERR3") {
+                    open_statusbar()
                     $("#status-bar")[0].style.backgroundColor = "#ff5500"
                     $("#status-bar").text("スレッドが存在しません");
+                    close_statusbar()
                 } else {
+                    open_statusbar()
                     $("#status-bar")[0].style.backgroundColor = "#ff5500"
                     $("#status-bar").text("サーバーエラー");
+                    close_statusbar()
                 }
             }, error: (e) => {
+                open_statusbar()
                 $("#status-bar")[0].style.backgroundColor = "#ff5500"
                 $("#status-bar").text("接続エラー");
+                close_statusbar()
             }
         })
     })

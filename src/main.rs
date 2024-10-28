@@ -103,8 +103,14 @@ fn to_thr_object(thrid: String) -> Result<Thread, String> {
             let mut buf = String::new();
             file.read_to_string(&mut buf)
                 .expect("エラー！ファイルの読み込みに失敗しました.");
-            let thr: Thread = from_str(&buf.as_str()).expect("エラー！それはJSONですか？");
-            Ok(thr)
+            match from_str(&buf.as_str()) {
+                Ok(thr)=>{
+                    Ok(thr)
+                },
+                Err(_) => {
+                    Err(String::from("JSONがありません。"))
+                }
+            }
         }
         Err(_) => Err(String::from("ファイルの読み込みに失敗しました.")),
     }
@@ -293,18 +299,23 @@ async fn ev_make_rsp(data: web::Form<ResponseMakeParameters>, req: HttpRequest) 
 
                         let (mut thr, text) = parser::parse_commands(text, thr, id.clone());
 
-                        thr.content.push(Response {
-                            name: name.clone(),
-                            text: text.clone(),
-                            date: date,
-                            id: id,
-                        });
+                        if text != "" {
+                            thr.content.push(Response {
+                                name: name.clone(),
+                                text: text.clone(),
+                                date: date,
+                                id: id,
+                            });
 
-                        thr.len = thr.len + 1;
+                                
 
+                            thr.len = thr.len + 1;
+
+                        }
                         let buffer = to_string(&thr).unwrap();
-                        let _ = file.write_all(buffer.as_bytes());
+                        let _ = file.write_all(&buffer.as_bytes());
                         HttpResponse::Ok().body("SUC")
+
                     }
                     Err(_) => HttpResponse::Ok().body("ERR2") // 書き込みの際何らかの問題が発生した場合に返される
                 }
