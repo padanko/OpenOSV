@@ -9,31 +9,31 @@
     
 </head>
 
-<body style="background-color: #efefef;">
+<body>
+    <div id="status-bar">正常</div>
     <div style="margin:20px;">
         <div style="position:fixed; top:35vh; right:1vw; display: flex; flex-direction: column;">
             <a href="#title__" class="button-upanddown">▲</a>
             <a href="#form__" class="button-upanddown">▼</a>
         </div>
-        <h1 style="color:red" id="title__">{{ title }}</h1>
-        <a href="/">■戻る</a>
-        <hr>
         <div id="thr">
+            <h1 style="color:red" id="title__">{{ title }}</h1>
             {% for response in com %}
             <dl id='r{{ loop.index }}'>
-                <dt>{{ loop.index }}: <b style="color: green">{{ response.name }}</b>, {{ response.date }}, ID: {{ response.id }}{% if response.id == admin_id %}<small style="color:red">主</small>{% endif %}</dt>
+                <dt><a class="reply-button" onclick="reply('{{ loop.index }}')">{{ loop.index }}</a>: <b style="color: green">{{ response.name }}</b>, {{ response.date }}, ID: {{ response.id }}{% if response.id == admin_id %}<small style="color:red">主</small>{% endif %}</dt>
                 <dd>{{ response.text | safe }}</dd>
             </dl>
             {% endfor %}
         </div>
         <hr>
-        <a href="/">■戻る</a>
+        <button class="btn-color-1" id="bookmark">🔖ブックマーク</button>
         <hr>
         <div id="form__">
             お名前: <input type="text" id="name" name="name"><br><br>
             <textarea style="width: 100%; height:150px" id="text" name="text" placeholder="本文"></textarea>
             <button id="submit" style="width: 100%; height:50px;">投稿</button>
         </div>
+        <span class="spacer">OpenOSV v0.1.4</span>
     </div>
     <div class="bottom-nav">
         <a href="/">🏡ホーム</a>
@@ -43,9 +43,11 @@
 </body>
 <form action="/Post/Response" id="PostURL"></form>
 <a href="/poll/{{ thrid }}" id="GetURL"></a>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="/static/jquery.min.js"></script>
+<script src="/static/jquery.cookie.min.js"></script>
 <script>
     $("#submit").click(() => {
+        
         name = $("#name").val();
         text = $("#text").val();
         $.ajax({
@@ -58,16 +60,53 @@
                 name: name
             },
             success: (c) => {
+                if (!$.cookie("bookmark")) {
+                    $.cookie("bookmark", "", {path: "/"})
+                }
+                var bookmarks = $.cookie("bookmark").split(" ")
+                if (!bookmarks.includes("{{ thrid }}")) {
+                    bookmarks.push("{{ thrid }}")
+                }
+                $.cookie("bookmark", bookmarks.join(" "), {path: "/"})
+
                 if (c == "SUC") {
                     console.log("成功");
+
+                    $("#status-bar")[0].style.backgroundColor = "#55dd88"
+                    $("#status-bar").text("成功")
                     $("#text").val("");
                 } else if (c == "ERR3") {
-                    alert("BANされています: 他のスレッドで遊びましょう。");
+                    $("#status-bar")[0].style.backgroundColor = "#ff5500"
+                    $("#status-bar").text("BANされています");
+                } else if (c == "ERR3") {
+                    $("#status-bar")[0].style.backgroundColor = "#ff5500"
+                    $("#status-bar").text("スレッドが存在しません");
                 } else {
-                    alert("サーバー側でエラーが発生しています。");
+                    $("#status-bar")[0].style.backgroundColor = "#ff5500"
+                    $("#status-bar").text("サーバーエラー");
                 }
+            }, error: (e) => {
+                $("#status-bar")[0].style.backgroundColor = "#ff5500"
+                $("#status-bar").text("接続エラー");
             }
         })
+    })
+
+    function reply(c) {
+        $("#text").val(">>"+c+"\n"+$("#text").val())
+    }
+
+    $("#bookmark").click(()=>{
+        if (!$.cookie("bookmark")) {
+            $.cookie("bookmark", "", {path: "/"})
+        }
+        var bookmarks = $.cookie("bookmark").split(" ")
+        if (!bookmarks.includes("{{ thrid }}")) {
+            bookmarks.push("{{ thrid }}")
+        } else {
+            bookmarks = bookmarks.filter(thrid => thrid != "{{ thrid }}")
+        }
+        $.cookie("bookmark", bookmarks.join(" "), {path: "/"})
     })
 
     function poll() {
@@ -83,8 +122,6 @@
                 poll()
             })
     }
-
-
 
     poll()
 </script>

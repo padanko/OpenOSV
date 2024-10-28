@@ -15,28 +15,32 @@ fn randint(a: i32, b:i32) -> i32 {
 
 // BAN機能「aku」のコマンド
 fn ban_parse(mut text: String, mut thread: Thread, id: String) -> (Thread, String) {
-    let ban_command_pattern: Regex = Regex::new(r"!aku:([0-9]+)").unwrap();  // Open2chと同じ !aku コマンド
-    match ban_command_pattern.captures(text.clone().as_str()) {
-        Some(val) => {
-            for item in val.iter() {
-                match item {
-                    Some(item) => {
-                        let item_str = item.as_str();
-                        if is_decimal(item_str) {
-                            let parsed_result: usize = item_str.parse().expect("数値へパースすることに失敗しました。");
-                            if parsed_result <= thread.content.clone().len() { 
-                                let ban_target_id: &String = &thread.content[parsed_result-1].id;
-                                thread.banned.push(ban_target_id.clone());
-                                text = format!("{}\n<b class='color-1'>■アク禁(BAN)  ID: {}</b>", &text, ban_target_id);
+    if id == thread.admin {
+        let ban_command_pattern: Regex = Regex::new(r"!aku:([0-9]+)").unwrap();  // Open2chと同じ !aku コマンド
+        match ban_command_pattern.captures(text.clone().as_str()) {
+            Some(val) => {
+                for item in val.iter() {
+                    match item {
+                        Some(item) => {
+                            let item_str = item.as_str();
+                            if is_decimal(item_str) {
+                                let parsed_result: usize = item_str.parse().expect("数値へパースすることに失敗しました。");
+                                if parsed_result <= thread.content.clone().len() { 
+                                    let ban_target_id: &String = &thread.content[parsed_result-1].id;
+                                    thread.banned.push(ban_target_id.clone());
+                                    text = format!("{}\n<b class='color-1'>■アク禁(BAN)  ID: {}</b>", &text, ban_target_id);
+                                }
                             }
-                        }
-                    }, None => {
+                        }, None => {
 
+                        }
                     }
                 }
+            }, None => {
             }
-        }, None => {
         }
+    } else {
+        text = format!("{}\n<b class='color-2'>■アク禁(BAN)  失敗: 権限を保有していません</b>", &text);
     }
     let results: (Thread, String) = (thread, text);
     return results;

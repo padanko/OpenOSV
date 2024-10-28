@@ -58,7 +58,7 @@ fn generate_id(ipaddr_: String) -> String {
     return id; // IDを返す
 }
 
-// IPアドレスを素にIDを生成する
+// スレッドのIDを生成する
 fn generate_thread_id() -> String {
     let mut rng = rand::thread_rng();
     let id: String = (0..10).map(|_| rng.gen_range(0..10).to_string()).collect();
@@ -179,6 +179,7 @@ async fn ev_make_thr(data: web::Form<ThreadMakeParameters>, req: HttpRequest) ->
                 id: thr_id.clone(),
                 len: 1,
                 var: HashMap::new(),
+                ended: false
             };
 
             let (thread_object, _) = parser::parse_commands(text, thread_object, id);
@@ -327,6 +328,20 @@ async fn page_history() -> impl Responder {
     HttpResponse::Ok().content_type("text/html").body(html)
 }
 
+async fn ev_api_thread_get_tojson(path: web::Path<(String,)>) -> impl Responder{
+    match fs::File::open(format!("./BBS/{}.json", path.into_inner().0)) {
+        Ok(mut file) => {
+            let mut buf = String::new();
+            match file.read_to_string(&mut buf) {
+                Ok(_) => {
+                    HttpResponse::Ok().content_type("application/json").body(buf)
+                },
+                Err(_) => HttpResponse::Ok().content_type("application/json").body("{\"type\": 1, \"message\": \"thread does not exist\"}"),
+            }
+        },
+        Err(_) => HttpResponse::Ok().content_type("application/json").body("{\"type\": 1, \"message\": \"thread does not exist\"}"),
+    }
+}
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -338,6 +353,7 @@ async fn main() -> std::io::Result<()> {
             .route("/thread/{thrID}", web::get().to(page_thread))
             .route("/history", web::get().to(page_history))
             .route("/poll/{thrID}", web::get().to(ev_poll))
+            .route("/api/tgJSON/{thrID}", web::get().to(ev_api_thread_get_tojson))
             .service(fs_actix::Files::new("/static", "./static").show_files_listing())
     })
     .bind("127.0.0.1:8080")?

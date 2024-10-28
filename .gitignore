@@ -1,3 +1,5 @@
 /target
-/BBS
-/build.sh
+/BBS/*.json
+/run.py
+/static/jquery.*
+/run.sh

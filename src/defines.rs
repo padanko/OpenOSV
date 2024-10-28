@@ -10,6 +10,8 @@ pub(crate) struct Thread {
     pub content: Vec<Response>,
     pub admin: String,
     pub var: HashMap<String, i32>,
+    pub ended: bool,
+
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -19,3 +21,5 @@ pub(crate) struct Response {
     pub date: String,
     pub id: String,
 }
+
+pub(crate) const VERSION: &str = "v0.1.4";

@@ -1,4 +1,5 @@
 use regex;
+use crate::defines;
 
 // parseのやつとは違っていつレンダリングしても不変なテキストを扱う
 // 備考:　これらの関数は1回のアクセスごとに1回しか呼ばれない
@@ -29,7 +30,7 @@ pub fn replace_text(mut text: String) -> String {
     text = reply_com_replace(text);
     text = img_com_replace(text);
 
-    text = text.replace("!version", "!version\n<i>OpenOSV v0.1.3</i>");
+    text = text.replace("!version", format!("!version\n<i>OpenOSV {}</i>", defines::VERSION).as_str());
     text = text.replace("\n", "<br>");
 
 
